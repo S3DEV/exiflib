@@ -68,7 +68,7 @@ class Setup(object):
 
     # ADD DATA AND DOCUMENTATION FILES
     DATA_FILES      = get_datafiles(pkg_dir=PACKAGE_ROOT, get_docs=False)
-    PACKAGE_DATA    = {}
+    PACKAGE_DATA    = {'': 'LICENSE'}
 
     def run(self):
         """Run the setup."""
