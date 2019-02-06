@@ -1,0 +1,19 @@
+Metadata-Version: 1.2
+Name: exiflib
+Version: 2.0.2
+Summary: Extract exif data from an image and return as a Pandas DataFrame.
+Home-page: https://github.com/s3dev/exiflib
+Author: J. Berendt
+Author-email: support@73rdstreetdevelopment.co.uk
+Maintainer: J. Berendt
+Maintainer-email: support@73rdstreetdevelopment.co.uk
+License: MIT
+Description: UNKNOWN
+Platform: Python 3.5
+Classifier: Programming Language :: Python :: 3.5
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Topic :: Software Development
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Utilities

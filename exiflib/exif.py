@@ -1,7 +1,7 @@
-# TODO: New Sphinx-style docstrings.
+#!/usr/bin/env python
 """------------------------------------------------------------------------------------------------
 Program:    exif.py
-Version:    2.0.1
+Version:    2.0.2
 Py Ver:     3.5
 Purpose:    This program is designed to extract the EXIF metadata from an image, convert the GPS
             information into latitude / longitude coordinates and output the results as a pandas
@@ -12,8 +12,8 @@ Attrib:     Latitude / longitude extraction and conversion code modified from:
             Source:     https://gist.github.com/erans/983821
 
 Use:
-            > from exif import extract_exif_data
-            > data = extract_exif_data(filename='/path/to/image.jpg')
+            > from exiflib import exif
+            > data = exif.extract_exif_data(filename='/path/to/image.jpg')
 
 ----------------------------------------------------------------------------------------------------
 UPDATE LOG:
@@ -31,7 +31,12 @@ Date        Programmer      Version     Update
                                         was retrieved.
                                         If no exif data is retrieved, the filename and full path
                                         values are returned in the Series.
+06.02.19    J. Berendt      2.0.2       Converted from local package lib to installed package.
 ------------------------------------------------------------------------------------------------"""
+
+# TODO: Better PEP8 conformance (line lengths / docstrings).
+# TODO: New Sphinx-style docstrings.
+# TODO: Convert to class?
 
 import os
 import pandas as pd
@@ -55,8 +60,8 @@ def extract_exif_data(filename):
     docstring for the _extract_exif_data() function.
 
     USE:
-    > from exif import extract_exif_data
-    > data = extract_exif_data(filename='/path/to/image.jpg')
+    > from exiflib import exif
+    > data = exif.extract_exif_data(filename='/path/to/image.jpg')
     """
 
     # PANDAS SERIES IS NOT REFACTORED
