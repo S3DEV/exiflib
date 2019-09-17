@@ -1,0 +1,19 @@
+This change log shows changes pre-git version control.
+----------------------------------------------------------------------------------------------------
+UPDATE LOG:
+Date        Programmer      Version     Update
+16.01.18    J. Berendt      2.0.0       Near complete code re-write.  Heavily modified and
+                                        simplified original code.
+                                        Previous update comments removed as they are no longer
+                                        applicable.
+                                        Results are now returned as a pandas Series, rather than
+                                        as nested dictionaries.
+                                        Updated code formatting per PEP8.
+                                        Updated code formatting per PEP257.
+                                        pylint (10/10)
+22.01.18    J. Berendt      2.0.1       Updated to return a blank pandas Series if no exif data
+                                        was retrieved.
+                                        If no exif data is retrieved, the filename and full path
+                                        values are returned in the Series.
+06.02.19    J. Berendt      2.0.2       Converted from local package lib to installed package.
+------------------------------------------------------------------------------------------------"""

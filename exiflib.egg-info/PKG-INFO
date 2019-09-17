@@ -1,12 +1,12 @@
 Metadata-Version: 1.2
 Name: exiflib
-Version: 2.0.2
-Summary: Extract exif data from an image and return as a Pandas DataFrame.
+Version: 3.0.0
+Summary: Extract exif data from an image and return as a Pandas Series.
 Home-page: https://github.com/s3dev/exiflib
 Author: J. Berendt
-Author-email: support@73rdstreetdevelopment.co.uk
+Author-email: support@s3dev.uk
 Maintainer: J. Berendt
-Maintainer-email: support@73rdstreetdevelopment.co.uk
+Maintainer-email: support@s3dev.uk
 License: MIT
 Description: UNKNOWN
 Platform: Python 3.5

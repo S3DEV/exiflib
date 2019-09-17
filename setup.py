@@ -45,9 +45,9 @@ class Setup(object):
     VERSION         = __version__
     PLATFORMS       = 'Python 3.5'
     DESC            = ('Extract exif data from an image and return as a '
-                       'Pandas DataFrame.')
+                       'Pandas Series.')
     AUTHOR          = 'J. Berendt'
-    AUTHOR_EMAIL    = 'support@73rdstreetdevelopment.co.uk'
+    AUTHOR_EMAIL    = 'support@s3dev.uk'
     URL             = 'https://github.com/s3dev/exiflib'
     LICENSE         = 'MIT'
     ROOT            = os.path.realpath(os.path.dirname(__file__))
@@ -68,7 +68,7 @@ class Setup(object):
 
     # ADD DATA AND DOCUMENTATION FILES
     DATA_FILES      = get_datafiles(pkg_dir=PACKAGE_ROOT, get_docs=False)
-    PACKAGE_DATA    = {'': 'LICENSE'}
+    PACKAGE_DATA    = {'exiflib': ['LICENSE']}
 
     def run(self):
         """Run the setup."""
