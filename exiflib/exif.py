@@ -1,42 +1,32 @@
 #!/usr/bin/env python
-"""------------------------------------------------------------------------------------------------
-Program:    exif.py
-Version:    2.0.2
-Py Ver:     3.5
-Purpose:    This program is designed to extract the EXIF metadata from an image, convert the GPS
-            information into latitude / longitude coordinates and output the results as a pandas
-            Series.
+# -*- coding: utf-8 -*-
+"""
+:App:       exiflib
+:Purpose:   This installed library is designed to be a light-weight and
+            easy to use wrapper for extracting meta data from an image.
 
-Attrib:     Latitude / longitude extraction and conversion code modified from:
-            Programmer: Eran Sandler
-            Source:     https://gist.github.com/erans/983821
+            The GPS information is converted into latitude /longitude
+            coordinates and the full extracted dataset is returned as a
+            pandas Series.
 
-Use:
-            > from exiflib import exif
-            > data = exif.extract_exif_data(filename='/path/to/image.jpg')
+:Version:   3.0.0
+:Platform:  Linux/Windows | Python 3.5
+:Developer: J Berendt
+:Email:     support@s3dev.uk
 
-----------------------------------------------------------------------------------------------------
-UPDATE LOG:
-Date        Programmer      Version     Update
-16.01.18    J. Berendt      2.0.0       Near complete code re-write.  Heavily modified and
-                                        simplified original code.
-                                        Previous update comments removed as they are no longer
-                                        applicable.
-                                        Results are now returned as a pandas Series, rather than
-                                        as nested dictionaries.
-                                        Updated code formatting per PEP8.
-                                        Updated code formatting per PEP257.
-                                        pylint (10/10)
-22.01.18    J. Berendt      2.0.1       Updated to return a blank pandas Series if no exif data
-                                        was retrieved.
-                                        If no exif data is retrieved, the filename and full path
-                                        values are returned in the Series.
-06.02.19    J. Berendt      2.0.2       Converted from local package lib to installed package.
-------------------------------------------------------------------------------------------------"""
+:Attrib:    The latitude / longitude extraction and conversion code is
+            a modified version of:
 
-# TODO: Better PEP8 conformance (line lengths / docstrings).
-# TODO: New Sphinx-style docstrings.
-# TODO: Convert to class?
+                * Programmer: Eran Sandler
+                * Source:     https://gist.github.com/erans/983821
+
+:Example:
+    Example code use::
+
+        from exiflib.exif import Exif
+        data = Exif(image_path='/path/to/image.jpg').extract()
+
+"""
 
 import os
 import pandas as pd
@@ -45,235 +35,190 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 
 
-# ----------------------------------------------------------------------
-def extract_exif_data(filename):
-    """
-    Control the process flow through the extraction process.
+class Exif():
+    """Wrapper for extracting exif data from images.
 
-    DESIGN:
-    Using the PIL library, the image file's binary data is read and
-    exif data extracted.  The exif data keys are then mapped to their
-    textual counterpart and added to a pandas Series; which is returned
-    to the caller.
+    Args:
+        image_path (str): Full file path to the image to be read.
 
-    For additional metadata extraction design and example, refer to the
-    docstring for the _extract_exif_data() function.
-
-    USE:
-    > from exiflib import exif
-    > data = exif.extract_exif_data(filename='/path/to/image.jpg')
     """
 
-    # PANDAS SERIES IS NOT REFACTORED
-    # pylint: disable=redefined-variable-type
+    def __init__(self, image_path):
+        """Class initialiser."""
+        self._img = image_path
+        self._s_data = pd.Series()
+        self._img_data = {}
+        self._gps_data = {}
+        self._exif_data = {}
+        self._data = {}
 
-    # INITIALISE
-    data     = None
-    gps_data = None
-    img_data = None
-    results  = None
+    def extract(self) -> pd.Series:
+        """Extract meta data from an image file.
 
-    # NOTIFICATION
-    print('Extracting exif for: %s' % os.path.basename(filename))
+        :Design:
+            Using the ``PIL`` library, the image file's binary data is
+            read and exif meta data extracted.  The exif data keys are
+            mapped to their textual counterpart and added to a pandas
+            Series; which is returned to the caller.
 
-    # TEST IF IMAGE FILE EXISTS
-    if u.fileexists(filename):
-        # TEST IF FILE IS MOV (NO EXIF DATA)
-        img_data, gps_data = _test_for_mov(filename=filename)
+            For additional metadata extraction design and example,
+            refer to the docstring for the
+            :func:`~exif._extract_exif_data` function.
 
-        # LOAD IMAGE DATA
-        if not img_data:
-            img_data = _get_image_data(filename=filename)
+        Returns:
+            If meta data was found, a pandas Series containing the
+            extracted meta data is returned.  Otherwise, an empty
+            Series is returned.
 
-        # EXTRACT EXIF DATA
-        data, gps_data = _extract_exif_data(img_data=img_data, filename=filename)
+        """
+        print('Extracting exif for: {}'.format(os.path.basename(self._img)))
+        if u.fileexists(self._img):
+            # Test if file is MOV (no exif data).
+            self._test_for_mov()
+            # Load image data.
+            if not self._img_data:
+                self._get_image_data()
+            # Extract exif data.
+            self._extract_exif_data()
+            # Convert data to pandas Series.
+            self._convert_to_series()
+        return self._s_data
 
-        if all([data, gps_data]):
-            # CONVERT DATA TO PANDAS SERIES
-            results = _convert_to_series(data=data, gps_data=gps_data)
+    @staticmethod
+    def _convert_to_degrees(value):
+        """Convert GPS values into decimal lat/lon coordinates.
+
+        Args:
+            value (tuple): A tuple containing data extracted from the
+                'GPSLatitude' or 'GPSLongitude' GPS tags.
+
+        The code in this method is modified from:
+
+            * Programmer: Eran Sandler
+            * Source:     https://gist.github.com/erans/983821
+
+        """
+        # Degrees
+        deg0 = value[0][0]
+        deg1 = value[0][1]
+        deg  = float(deg0) / float(deg1)
+        # Minutes
+        mns0 = value[1][0]
+        mns1 = value[1][1]
+        mns  = float(mns0) / float(mns1)
+        # Seconds
+        sec0 = value[2][0]
+        sec1 = value[2][1]
+        sec  = float(sec0) / float(sec1)
+        # Return calculation
+        return deg + (mns / 60.0) + (sec / 3600.00)
+
+    def _convert_to_series(self):
+        """Convert data dictionaries to pandas Series."""
+        # Test both datasets exist.
+        if all([self._data, self._gps_data]):
+            self._s_data = pd.concat([pd.Series(self._data),
+                                      pd.Series(self._gps_data)])
         else:
-            results = pd.Series(data)
+            # Convert simple data to Series, without GPS data.
+            self._s_data = pd.Series(self._data)
 
-        return results
+    def _extract_exif_data(self):
+        """Extract exif data from an image.
 
+        :Example Data:
+            ApertureValue               (7983, 3509)
+            BrightnessValue             (5099, 1324)
+            ColorSpace                  1
+            ComponentsConfiguration
+            DateTime                    2017:05:20 19:11:53
+            DateTimeDigitized           2017:05:20 19:11:53
+            DateTimeOriginal            2017:05:20 19:11:53
+            ...
+            ResolutionUnit              2
+            SceneCaptureType            0
+            SceneType
+            SensingMethod               2
+            ShutterSpeedValue           (2297, 454)
+            ...
+            GPSLatitude                 ((r, e), (m, o), (v, ed))
+            GPSLatitudeRef              N
+            GPSLongitude                ((r, e), (m, o), (v, ed))
+            GPSLongitudeRef             W
+            GPSSpeed                    (0, 1)
+            GPSSpeedRef                 K
+            Latitude                    nn.nnnnnnnn
+            Longitude                   nn.nnnnnnnn
+            ...
 
-# ----------------------------------------------------------------------
-def _convert_to_degrees(value):
-    """
-    Convert gps information dictionary into decimal latitude and
-    longitude coordinates.
+        """
+        try:
+            # Decode tag ids to tag name.  Build a new data dict.
+            for k, v in self._img_data.items():
+                self._data[TAGS.get(k)] = v
+            # Remove any `None` keys.
+            if None in self._data.keys():
+                self._data.pop(None)
+            self._data['Fullpath'] = self._img
+            self._data['Filename'] = os.path.basename(self._img)
+            # Test for GPS data.
+            if 'GPSInfo' in self._data:
+                # Decode GPS tag ids to tag name.  Build new data dict.
+                for k, v in self._data['GPSInfo'].items():
+                    self._gps_data[GPSTAGS.get(k)] = v
+                # Convert latitude / longitude data.
+                self._get_lat_lon()
+        except Exception as err:
+            # Print error.
+            print('ERR: {}'.format(err))
+            print('Process continuing for: {}'.format(os.path.basename(self._img)))
+            # Add filename to results.
+            self._data['Fullpath'] = self._img
+            self._data['Filename'] = os.path.basename(self._img)
 
-    Code attribution:
-    Programmer: Eran Sandler
-    Source:     https://gist.github.com/erans/983821
-    """
+    def _get_image_data(self):
+        """Use the ``PIL.Image`` library to extract exif metadata."""
+        try:
+            self._img_data = Image.open(self._img)._getexif()
+        except Exception:
+            print('Cannot retrieve exif data from {}'.format(self._img))
 
-    # DEGREES
-    deg0 = value[0][0]
-    deg1 = value[0][1]
-    deg  = float(deg0) / float(deg1)
+    def _get_lat_lon(self):
+        """Extract lat/lon values from GPSInfo dictionary.
 
-    # MINUTES
-    mns0 = value[1][0]
-    mns1 = value[1][1]
-    mns  = float(mns0) / float(mns1)
+        The code in this method is modified from:
 
-    # SECONDS
-    sec0 = value[2][0]
-    sec1 = value[2][1]
-    sec  = float(sec0) / float(sec1)
+            * Programmer: Eran Sandler
+            * Source:     https://gist.github.com/erans/983821
 
-    # RETURN CALCULATION
-    return deg + (mns / 60.0) + (sec / 3600.00)
+        """
+        lat = 0
+        lon = 0
+        lat_val = self._gps_data.get('GPSLatitude')
+        lon_val = self._gps_data.get('GPSLongitude')
+        lat_ref = self._gps_data.get('GPSLatitudeRef')
+        lon_ref = self._gps_data.get('GPSLongitudeRef')
+        # Test for all parts.
+        if all([lat_val, lon_val, lat_ref, lon_ref]):
+            # Convert to decimal.
+            lat = self._convert_to_degrees(value=lat_val)
+            lon = self._convert_to_degrees(value=lon_val)
+            # Determine N/S/E/W
+            if lat_ref != 'N': lat = (-1 * lat)
+            if lon_ref != 'E': lon = (-1 * lon)
+        self._gps_data['Latitude'] = lat
+        self._gps_data['Longitude'] = lon
 
+    def _test_for_mov(self):
+        """Test if the file is an MOV file.
 
-# ----------------------------------------------------------------------
-def _convert_to_series(data, gps_data):
-    """Convert data dictionaries to pandas Series."""
+        :Design:
+            If the file is an MOV file, populate the data dictionary
+            with default values.  (i.e.: Filename and full file path)
 
-    return pd.concat([pd.Series(data), pd.Series(gps_data)])
-
-
-# ----------------------------------------------------------------------
-def _extract_exif_data(img_data, filename):
-    """
-    SUMMARY:
-    Extract exif data from an image.  Return results as pandas Series.
-
-    EXAMPLE:
-    ApertureValue               (7983, 3509)
-    BrightnessValue             (5099, 1324)
-    ColorSpace                  1
-    ComponentsConfiguration
-    DateTime                    2017:05:20 19:11:53
-    DateTimeDigitized           2017:05:20 19:11:53
-    DateTimeOriginal            2017:05:20 19:11:53
-    ...
-    ResolutionUnit              2
-    SceneCaptureType            0
-    SceneType
-    SensingMethod               2
-    ShutterSpeedValue           (2297, 454)
-    ...
-    GPSLatitude                 ((r, e), (m, o), (v, ed))
-    GPSLatitudeRef              N
-    GPSLongitude                ((r, e), (m, o), (v, ed))
-    GPSLongitudeRef             W
-    GPSSpeed                    (0, 1)
-    GPSSpeedRef                 K
-    Latitude                    nn.nnnnnnnn
-    Longitude                   nn.nnnnnnnn
-    ...
-
-    USE:
-    > from exif import extract_exif_data
-    > data = extract_exif_data(filename='/path/to/image.jpg')
-    """
-
-    # INITIALISE VARIABLES
-    data = dict()
-    gps_data = dict()
-
-    try:
-
-        # DECODE TAG IDS TO TAG NAME >> BUILD NEW DATA DICT
-        for k, v in img_data.items(): data[TAGS.get(k)] = v
-
-        # REMOVE ANY NONETYPE KEYS
-        if None in data.keys(): data.pop(None)
-
-        # ADD FILE VALUES TO DICTIONARY
-        data['Fullpath'] = filename
-        data['Filename'] = os.path.basename(filename)
-
-        # TEST FOR GPS DATA
-        if 'GPSInfo' in data:
-            # DECODE GPS TAG IDS TO TAG NAME >> BUILD NEW DATA DICT
-            for k, v in data['GPSInfo'].items(): gps_data[GPSTAGS.get(k)] = v
-            # GET LAT/LON FOR GPS DATA
-            lat_lon = _get_lat_lon(gps_data=gps_data)
-            # ADD PURE LAT/LON VALUES TO DICTIONARY
-            gps_data['Latitude'] = lat_lon[0]
-            gps_data['Longitude'] = lat_lon[1]
-
-    except Exception as err:
-        # PRINT ERROR
-        print('ERR: %s' % (err))
-        print('Process continuing for: %s' % (os.path.basename(filename)))
-        # ADD FILENAME TO RESULTS
-        data['Fullpath'] = filename
-        data['Filename'] = os.path.basename(filename)
-
-    return data, gps_data
-
-
-# ----------------------------------------------------------------------
-def _get_image_data(filename):
-    """Use the PIL library to extract image and exif metadata."""
-
-    img_data = {}
-
-    # GET DATA FROM IMAGE
-    try:
-        img_data = Image.open(filename)._getexif()
-    except:
-        print('Cannot retrieve exif data from %s' % (filename))
-
-    return img_data
-
-
-# ----------------------------------------------------------------------
-def _get_lat_lon(gps_data):
-    """
-    Extract latitude and longitude values from GPSInfo dictionary.
-
-    Original code attribution:
-    Programmer: Eran Sandler
-    Source:     https://gist.github.com/erans/983821
-    """
-
-    # EXTRACT LAT / LON VALUES
-    lat_val = gps_data.get('GPSLatitude')
-    lon_val = gps_data.get('GPSLongitude')
-    lat_ref = gps_data.get('GPSLatitudeRef')
-    lon_ref = gps_data.get('GPSLongitudeRef')
-
-    # TEST FOR ALL PARTS
-    if all([lat_val, lon_val, lat_ref, lon_ref]):
-        # CONVERT TO DECIMAL
-        lat = _convert_to_degrees(value=lat_val)
-        lon = _convert_to_degrees(value=lon_val)
-
-        # DETERMINE N/S/E/W
-        if lat_ref != 'N': lat = (0 - lat)
-        if lon_ref != 'E': lon = (0 - lon)
-
-    # RETURN VALUE
-    return lat, lon
-
-
-# ----------------------------------------------------------------------
-def _test_for_mov(filename):
-    """
-    Test if the file is an MOV file.
-
-    DESIGN:
-    If the file is an MOV file, populate the data dictionary with
-    default values - i.e.: filename and full file path.
-
-    Otherwise, return a None type, so the data dictionary can be
-    populated with exif data.
-    """
-
-    # TEST IF .MOV FILE (NO EXIF DATA)
-    if os.path.splitext(filename)[1].lower() == '.mov':
-        # POPULATE DEFAULT VALUES
-        data = dict(Fullpath=filename,
-                    Filename=os.path.basename(filename))
-        gps_data = dict(default=None)
-
-    else:
-        data = None
-        gps_data = None
-
-    return data, gps_data
+        """
+        if os.path.splitext(self._img)[1].lower() == '.mov':
+            # Populate default values.
+            self._img_data = {'Fullpath': self._img,
+                              'Filename': os.path.basename(self._img)}
+            self._gps_data = {'default': None}
