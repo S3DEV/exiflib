@@ -1,9 +1,10 @@
 setup.py
-/devmt/py/exiflib_3.0.0/LICENSE
+/var/devmt/py/exiflib_3.0.1/LICENSE
 exiflib/__init__.py
 exiflib/_version.py
 exiflib/exif.py
 exiflib.egg-info/PKG-INFO
 exiflib.egg-info/SOURCES.txt
 exiflib.egg-info/dependency_links.txt
+exiflib.egg-info/requires.txt
 exiflib.egg-info/top_level.txt

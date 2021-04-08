@@ -9,8 +9,8 @@
             coordinates and the full extracted dataset is returned as a
             pandas Series.
 
-:Version:   3.0.0
-:Platform:  Linux/Windows | Python 3.5
+:Version:   3.0.1
+:Platform:  Linux/Windows | Python 3.8
 :Developer: J Berendt
 :Email:     support@s3dev.uk
 
@@ -92,24 +92,8 @@ class Exif():
             value (tuple): A tuple containing data extracted from the
                 'GPSLatitude' or 'GPSLongitude' GPS tags.
 
-        The code in this method is modified from:
-
-            * Programmer: Eran Sandler
-            * Source:     https://gist.github.com/erans/983821
-
         """
-        # Degrees
-        deg0 = value[0][0]
-        deg1 = value[0][1]
-        deg  = float(deg0) / float(deg1)
-        # Minutes
-        mns0 = value[1][0]
-        mns1 = value[1][1]
-        mns  = float(mns0) / float(mns1)
-        # Seconds
-        sec0 = value[2][0]
-        sec1 = value[2][1]
-        sec  = float(sec0) / float(sec1)
+        deg, mns, sec = value
         # Return calculation
         return deg + (mns / 60.0) + (sec / 3600.00)
 

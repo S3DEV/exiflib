@@ -1,0 +1,3 @@
+pandas==1.2.2
+utils3==0.13.3
+Pillow==8.2.0

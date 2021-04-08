@@ -5,9 +5,9 @@
 :Purpose:   Python library packager.
 
 :Version:   0.2.0
-:Platform:  Linux/Windows | Python 3.5
+:Platform:  Linux/Windows | Python 3.8
 :Developer: J Berendt
-:Email:     support@73rdstreetdevelopment.co.uk
+:Email:     development@s3dev.uk
 
 :Example:
     Create source and wheel distributions::
@@ -43,7 +43,7 @@ class Setup(object):
 
     PACKAGE         = 'exiflib'
     VERSION         = __version__
-    PLATFORMS       = 'Python 3.5'
+    PLATFORMS       = 'Python 3.8'
     DESC            = ('Extract exif data from an image and return as a '
                        'Pandas Series.')
     AUTHOR          = 'J. Berendt'
@@ -54,7 +54,11 @@ class Setup(object):
     PACKAGE_ROOT    = os.path.join(ROOT, PACKAGE)
     SITE_PKGS       = os.path.join(utils.getsitepackages(), PACKAGE)
     INCL_PKG_DATA   = False
-    CLASSIFIERS     = ['Programming Language :: Python :: 3.5',
+    CLASSIFIERS     = ['Development Status :: 5 - Production/Stable'
+                       'Programming Language :: Python :: 3.5',
+                       'Programming Language :: Python :: 3.6',
+                       'Programming Language :: Python :: 3.7',
+                       'Programming Language :: Python :: 3.8',
                        'License :: OSI Approved :: MIT License',
                        'Operating System :: Microsoft :: Windows',
                        'Operating System :: POSIX :: Linux',
@@ -63,7 +67,7 @@ class Setup(object):
                        'Topic :: Utilities']
 
     # PACKAGE REQUIREMENTS
-    REQUIRES        = []
+    REQUIRES        = ['Pillow>=8.0', 'utils3', 'pandas']
     PACKAGES        = find_packages()
 
     # ADD DATA AND DOCUMENTATION FILES
