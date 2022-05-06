@@ -9,7 +9,7 @@
             coordinates and the full extracted dataset is returned as a
             pandas Series.
 
-:Version:   3.0.1
+:Version:   3.0.2
 :Platform:  Linux/Windows | Python 3.8
 :Developer: J Berendt
 :Email:     support@s3dev.uk
@@ -30,12 +30,13 @@
 
 import os
 import pandas as pd
-import utils3.utils as u
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
+from utils4 import utils
+from utils4.reporterror import reporterror
 
 
-class Exif():
+class Exif:
     """Wrapper for extracting exif data from images.
 
     Args:
@@ -43,7 +44,7 @@ class Exif():
 
     """
 
-    def __init__(self, image_path):
+    def __init__(self, image_path: str):
         """Class initialiser."""
         self._img = image_path
         self._s_data = pd.Series()
@@ -71,8 +72,8 @@ class Exif():
             Series is returned.
 
         """
-        print('Extracting exif for: {}'.format(os.path.basename(self._img)))
-        if u.fileexists(self._img):
+        print(f'Extracting exif for: {os.path.basename(self._img)}')
+        if utils.fileexists(self._img):
             # Test if file is MOV (no exif data).
             self._test_for_mov()
             # Load image data.
@@ -85,12 +86,15 @@ class Exif():
         return self._s_data
 
     @staticmethod
-    def _convert_to_degrees(value):
+    def _convert_to_degrees(value: tuple) -> float:
         """Convert GPS values into decimal lat/lon coordinates.
 
         Args:
             value (tuple): A tuple containing data extracted from the
                 'GPSLatitude' or 'GPSLongitude' GPS tags.
+
+        Returns:
+            float: Decimal version of the GPS coordinates.
 
         """
         deg, mns, sec = value
@@ -141,7 +145,7 @@ class Exif():
             for k, v in self._img_data.items():
                 self._data[TAGS.get(k)] = v
             # Remove any `None` keys.
-            if None in self._data.keys():
+            if None in self._data:
                 self._data.pop(None)
             self._data['Fullpath'] = self._img
             self._data['Filename'] = os.path.basename(self._img)
@@ -153,19 +157,27 @@ class Exif():
                 # Convert latitude / longitude data.
                 self._get_lat_lon()
         except Exception as err:
+            reporterror(err)
             # Print error.
-            print('ERR: {}'.format(err))
-            print('Process continuing for: {}'.format(os.path.basename(self._img)))
+            print(f'[ERR]: {err}')
+            print(f'Process continuing for: {os.path.basename(self._img)}')
             # Add filename to results.
             self._data['Fullpath'] = self._img
             self._data['Filename'] = os.path.basename(self._img)
 
     def _get_image_data(self):
-        """Use the ``PIL.Image`` library to extract exif metadata."""
+        """Use the ``PIL.Image`` library to extract exif metadata.
+
+        If exif data could not be extracted from the image, default values
+        are populated to the class' ``_img_data`` dictionary.
+
+        """
         try:
             self._img_data = Image.open(self._img)._getexif()
+            if not self._img_data:
+                self._populate_default_values()
         except Exception:
-            print('Cannot retrieve exif data from {}'.format(self._img))
+            print(f'Cannot retrieve exif data from {self._img}')
 
     def _get_lat_lon(self):
         """Extract lat/lon values from GPSInfo dictionary.
@@ -193,6 +205,13 @@ class Exif():
         self._gps_data['Latitude'] = lat
         self._gps_data['Longitude'] = lon
 
+    def _populate_default_values(self):
+        """Populate the ``_img_data`` dict with default values."""
+        # Populate default values.
+        self._img_data = {'Fullpath': self._img,
+                          'Filename': os.path.basename(self._img)}
+        self._gps_data = {'default': None}
+
     def _test_for_mov(self):
         """Test if the file is an MOV file.
 
@@ -202,7 +221,4 @@ class Exif():
 
         """
         if os.path.splitext(self._img)[1].lower() == '.mov':
-            # Populate default values.
-            self._img_data = {'Fullpath': self._img,
-                              'Filename': os.path.basename(self._img)}
-            self._gps_data = {'default': None}
+            self._populate_default_values()

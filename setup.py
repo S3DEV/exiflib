@@ -29,21 +29,20 @@
         pip install git+https://github.com/s3dev/<pkgname>
 
 """
+# pylint: disable=too-few-public-methods
 
 import os
 from setuptools import setup, find_packages
-from utils3.get_datafiles import get_datafiles
-from utils3 import utils
 from exiflib._version import __version__
 
 
-# pylint: disable=too-few-public-methods
-class Setup(object):
+class Setup:
     """Create a dist package for this library."""
 
     PACKAGE         = 'exiflib'
     VERSION         = __version__
-    PLATFORMS       = 'Python 3.8'
+    PLATFORMS       = 'Python 3.6+'
+    MIN_PYTHON      = '>=3.6'
     DESC            = ('Extract exif data from an image and return as a '
                        'Pandas Series.')
     AUTHOR          = 'J. Berendt'
@@ -52,13 +51,13 @@ class Setup(object):
     LICENSE         = 'MIT'
     ROOT            = os.path.realpath(os.path.dirname(__file__))
     PACKAGE_ROOT    = os.path.join(ROOT, PACKAGE)
-    SITE_PKGS       = os.path.join(utils.getsitepackages(), PACKAGE)
     INCL_PKG_DATA   = False
     CLASSIFIERS     = ['Development Status :: 5 - Production/Stable'
-                       'Programming Language :: Python :: 3.5',
                        'Programming Language :: Python :: 3.6',
                        'Programming Language :: Python :: 3.7',
                        'Programming Language :: Python :: 3.8',
+                       'Programming Language :: Python :: 3.9',
+                       'Programming Language :: Python :: 3.10',
                        'License :: OSI Approved :: MIT License',
                        'Operating System :: Microsoft :: Windows',
                        'Operating System :: POSIX :: Linux',
@@ -67,11 +66,11 @@ class Setup(object):
                        'Topic :: Utilities']
 
     # PACKAGE REQUIREMENTS
-    REQUIRES        = ['Pillow>=8.0', 'utils3', 'pandas']
+    REQUIRES        = ['Pillow>=9.0', 'utils4', 'pandas']
     PACKAGES        = find_packages()
 
     # ADD DATA AND DOCUMENTATION FILES
-    DATA_FILES      = get_datafiles(pkg_dir=PACKAGE_ROOT, get_docs=False)
+    DATA_FILES      = []
     PACKAGE_DATA    = {'exiflib': ['LICENSE']}
 
     def run(self):
@@ -79,6 +78,7 @@ class Setup(object):
         setup(name=self.PACKAGE,
               version=self.VERSION,
               platforms=self.PLATFORMS,
+              python_requires=self.MIN_PYTHON,
               description=self.DESC,
               author=self.AUTHOR,
               author_email=self.AUTHOR_EMAIL,

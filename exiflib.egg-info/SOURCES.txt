@@ -1,5 +1,5 @@
+LICENSE
 setup.py
-/var/devmt/py/exiflib_3.0.1/LICENSE
 exiflib/__init__.py
 exiflib/_version.py
 exiflib/exif.py
